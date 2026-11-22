@@ -82,7 +82,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: v
 <main>
   <div class="searchbar">
     <input id="q" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false"
-           placeholder="Search a song to start a radio, or paste a playlist link">
+           placeholder="Search a song, or paste a YouTube Music link">
     <button class="clear hidden" id="clear" aria-label="Clear search">✕</button>
   </div>
 
@@ -368,10 +368,28 @@ function showResults(html) {
   renderMini();
 }
 
+// A pasted YouTube / YouTube Music link: a song (radio from it) or a playlist (import it).
+function parseLink(text) {
+  let u;
+  try { u = new URL(text); } catch { return null; }
+  const host = u.hostname.replace(/^www\./, "");
+  const isId = (x) => /^[A-Za-z0-9_-]{11}$/.test(x || "");
+  let id = null;
+  if (host === "youtu.be") id = u.pathname.slice(1);
+  else if (host.endsWith("youtube.com")) id = u.searchParams.get("v");
+  else return null;
+  if (isId(id)) return { type: "radio", id };          // any song link, even one copied from inside a playlist
+  if (u.searchParams.get("list")) return { type: "playlist", url: text };
+  return null;
+}
+
 async function runSearch(q) {
   const seq = ++searchSeq;
   if (/^https?:\/\//i.test(q)) {
-    showResults(`<div class="list"><button class="row" data-import="1"><div class="ph"></div><div class="meta"><div class="t">Import this playlist</div><div class="s">${esc(q)}</div></div></button></div>`);
+    const link = parseLink(q);
+    if (link?.type === "radio") return startRadio(link.id);
+    if (link?.type === "playlist") return importPlaylist(link.url);
+    showResults('<div class="empty">That doesn\'t look like a YouTube song or playlist link.</div>');
     return;
   }
   showResults('<div class="empty">Searching…</div>');
@@ -397,9 +415,8 @@ $("clear").addEventListener("click", clearSearch);
 
 /* ---------- wiring ---------- */
 $("results").addEventListener("click", (e) => {
-  const r = e.target.closest("[data-radio]"), imp = e.target.closest("[data-import]");
+  const r = e.target.closest("[data-radio]");
   if (r) startRadio(r.dataset.radio);
-  else if (imp) importPlaylist($("q").value.trim());
 });
 $("upnext").addEventListener("click", (e) => { const r = e.target.closest("[data-i]"); if (r) { unlockAudio(); go(+r.dataset.i, true); } });
 $("recent").addEventListener("click", async (e) => {
