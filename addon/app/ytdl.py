@@ -7,7 +7,7 @@ from . import config
 
 
 def _opts(**extra) -> dict:
-    return {"quiet": True, "no_warnings": True, "js_runtimes": {"node": {}}, **extra}
+    return {"quiet": True, "no_warnings": True, "noprogress": True, "js_runtimes": {"node": {}}, **extra}
 
 
 def _thumb(entry: dict) -> str | None:

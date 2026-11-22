@@ -33,8 +33,8 @@ class Processor:
             self._inflight.add(track_id)
         self._pool.submit(self._run, track_id)
 
-    def submit_pending(self) -> None:
-        for tid in db.pending_track_ids():
+    def submit_many(self, track_ids: list[str]) -> None:
+        for tid in track_ids:
             self.submit(tid)
 
     def _run(self, track_id: str) -> None:
@@ -43,7 +43,8 @@ class Processor:
             if out.exists():
                 db.set_status(track_id, "ready")
                 return
-            db.set_status(track_id, "downloading")
+            if not db.claim(track_id):  # cancelled (skipped past) while waiting in line
+                return
             with self._download_lock:
                 raw = ytdl.download(track_id)
             db.set_status(track_id, "separating")

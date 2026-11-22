@@ -935,6 +935,7 @@ dependencies = [
 server = [
     { name = "fastapi" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "ytmusicapi" },
 ]
 worker = [
     { name = "modal" },
@@ -958,6 +959,7 @@ requires-dist = [
 server = [
     { name = "fastapi", specifier = ">=0.165.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
+    { name = "ytmusicapi", specifier = ">=1.12.4" },
 ]
 worker = [{ name = "modal", specifier = ">=1.6.4" }]
 
@@ -3001,4 +3003,16 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/83/31/4be3987022a6244550ab6a3afe45ad10ac10b5e5ab8874bd8eecc7f8b937/yt_dlp-2026.10.26.tar.gz", hash = "sha256:abe5c6b94c3b2f0560500add1c42e0a97641752743a5b65588ac2007a6e23eb6", size = 3048880, upload-time = "2026-10-26T22:25:26.931Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/3d/16ea7d5638cf585991f2c5705e8083688dde633d32d0871f2404e0f4d827/yt_dlp-2026.10.26-py3-none-any.whl", hash = "sha256:a05c5b5d8562f7e8a62f5334348b406af4930d56d3a65f8021d14af0e22339ae", size = 3186201, upload-time = "2026-10-26T22:25:24.877Z" },
+]
+
+[[package]]
+name = "ytmusicapi"
+version = "1.12.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1a/32/f43664949ae6f56dc8cae7a66724fbc49eae192488c6acf78f9a673d351f/ytmusicapi-1.12.4.tar.gz", hash = "sha256:bb9e827aba9f9dac956583c9c9bb6de738a810721d449ab9fd4bb58457fd6d59", size = 683463, upload-time = "2026-11-17T14:55:22.618Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ac/36/dcd31faf354db266171a869ddc0026d568c801312f5fea790ebfb2e9bf68/ytmusicapi-1.12.4-py3-none-any.whl", hash = "sha256:6f2dd849f76850c8053cd40ecd7ae26e1195c0874463784a5203158a1ac453b0", size = 111615, upload-time = "2026-11-17T14:55:20.883Z" },
 ]
