@@ -1,33 +1,0 @@
-INFO:     Started server process [21848]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:8099 (Press CTRL+C to quit)
-INFO:     127.0.0.1:50078 - "GET /api/health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50086 - "POST /api/playlists HTTP/1.1" 201 Created
-INFO:     127.0.0.1:37244 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-[download]   0.0% of    2.84MiB at  Unknown B/s ETA Unknown[download]   0.1% of    2.84MiB at  Unknown B/s ETA Unknown[download]   0.2% of    2.84MiB at  Unknown B/s ETA Unknown[download]   0.5% of    2.84MiB at   13.64MiB/s ETA 00:00  [download]   1.1% of    2.84MiB at   19.19MiB/s ETA 00:00[download]   2.2% of    2.84MiB at   18.96MiB/s ETA 00:00[download]   4.4% of    2.84MiB at   25.65MiB/s ETA 00:00[download]   8.8% of    2.84MiB at   36.62MiB/s ETA 00:00[download]  17.6% of    2.84MiB at   54.04MiB/s ETA 00:00[download]  35.2% of    2.84MiB at   70.67MiB/s ETA 00:00[download]  70.5% of    2.84MiB at   25.86MiB/s ETA 00:00[download] 100.0% of    2.84MiB at   33.57MiB/s ETA 00:00[download] 100% of    2.84MiB in 00:00:00 at 22.51MiB/s                                                         INFO:     127.0.0.1:37256 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60826 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60830 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37600 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:37606 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33540 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33544 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60486 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60494 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55364 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55378 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38986 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38992 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34390 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:34394 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54418 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54424 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56502 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-2026-11-22 15:04:31,716 [INFO] ready: j3M2Jywlvt0
-INFO:     127.0.0.1:56510 - "GET /api/playlists/1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:33446 - "GET /api/tracks/j3M2Jywlvt0/audio HTTP/1.1" 206 Partial Content
-INFO:     127.0.0.1:33452 - "GET /api/playlists HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [21848]

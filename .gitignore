@@ -1,11 +1,11 @@
 .venv/
 __pycache__/
 *.pyc
-# large / generated artifacts
-bench/out/
-bench/models/
-bench/test.*
-bench/bench.log
+# benchmarks live on disk only (large, local)
+bench/
+
+# generated artifacts
 cache/
 .claude/
 data-dev/
+data-dev-server.log
