@@ -1,5 +1,5 @@
 name: Instrumentalise
-version: "0.2.2"
+version: "0.2.3"
 slug: instrumentalise
 description: Play YouTube Music playlists with the vocals removed (separation runs on a Modal GPU)
 url: https://github.com/amcgavin/instrumentalise

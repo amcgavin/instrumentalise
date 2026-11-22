@@ -182,7 +182,7 @@ function renderPlayer() {
   if (!t) return;
   $("station").textContent = station.kind === "radio" ? "Radio" : "Playlist";
   $("title").textContent = t.title;
-  $("artist").textContent = t.artist || "";
+  $("artist").textContent = [t.artist, t.album].filter(Boolean).join(" · ");
   $("art").src = t.thumbnail || "";
   $("prev").disabled = index === 0;
   $("next").disabled = index >= station.tracks.length - 1;
@@ -260,20 +260,35 @@ function toggle() {
   audio.paused ? audio.play() : audio.pause();
 }
 
+// Media Session = what Bluetooth, the lock screen and the notification show and send.
+const MS = "mediaSession" in navigator ? navigator.mediaSession : null;
+
+// Re-assert metadata whenever the OS might have dropped it (track change, play, screen on/off).
 function updateMediaSession() {
   const t = track();
-  if (!("mediaSession" in navigator) || !t) return;
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: t.title, artist: t.artist || "", album: station.title,
+  if (!MS || !t || audio.src.startsWith("data:")) return;
+  MS.metadata = new MediaMetadata({
+    title: t.title, artist: t.artist || "", album: t.album || "",
     artwork: t.thumbnail ? [{ src: t.thumbnail, sizes: "512x512" }] : [],
   });
-  const set = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch { /* unsupported */ } };
-  set("play", () => audio.play()); set("pause", () => audio.pause());
-  set("nexttrack", next); set("previoustrack", prev);
-  set("seekto", (d) => { audio.currentTime = d.seekTime; });
-  set("seekbackward", () => { audio.currentTime = Math.max(0, audio.currentTime - 10); });
-  set("seekforward", () => { audio.currentTime += 10; });
+  MS.playbackState = audio.paused ? "paused" : "playing";
 }
+
+// Handlers are registered once, up front. Deliberately NO seekforward/seekbackward: many
+// Bluetooth devices send their skip buttons as seek commands when those handlers exist.
+function initMediaSession() {
+  if (!MS) return;
+  const set = (action, fn) => { try { MS.setActionHandler(action, fn); } catch { /* unsupported action */ } };
+  set("play", () => (audio.src && !audio.src.startsWith("data:") ? audio.play() : loadCurrent(true)));
+  set("pause", () => audio.pause());
+  set("stop", () => audio.pause());
+  set("nexttrack", () => next());
+  set("previoustrack", () => prev());
+  set("seekto", (d) => { if (audio.duration) audio.currentTime = d.seekTime; });
+  set("seekbackward", null);
+  set("seekforward", null);
+}
+initMediaSession();
 
 function updatePositionState() {
   if ("mediaSession" in navigator && isFinite(audio.duration) && audio.duration > 0) {
@@ -281,8 +296,10 @@ function updatePositionState() {
   }
 }
 
-audio.addEventListener("play", () => setToggleIcons(true));
-audio.addEventListener("pause", () => setToggleIcons(false));
+audio.addEventListener("play", () => { setToggleIcons(true); if (MS) MS.playbackState = "playing"; });
+audio.addEventListener("pause", () => { setToggleIcons(false); if (MS && !audio.src.startsWith("data:")) MS.playbackState = "paused"; });
+audio.addEventListener("playing", updateMediaSession);
+setInterval(() => { if (!audio.paused) updateMediaSession(); }, 30000);
 audio.addEventListener("ended", () => {
   if (audio.src.startsWith("data:")) return;   // the silent unlock clip ending is not a song ending
   if (track()?.status === "ready") next();
@@ -324,7 +341,7 @@ async function tick() {
   } catch { /* network blip: try again next tick */ }
 }
 setInterval(tick, POLL_BUSY_MS);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+document.addEventListener("visibilitychange", () => { updateMediaSession(); if (!document.hidden) tick(); });
 
 async function retry(t) {
   try { await api(`tracks/${t.id}/retry`, { method: "POST" }); waitingSince = Date.now(); tick(); } catch (e) { toast(e.message); }

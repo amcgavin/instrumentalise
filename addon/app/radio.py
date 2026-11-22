@@ -22,6 +22,7 @@ def _track(t: dict) -> dict:
         "id": t["videoId"],
         "title": t.get("title") or t["videoId"],
         "artist": ", ".join(a["name"] for a in t.get("artists") or [] if a.get("name")) or None,
+        "album": (t.get("album") or {}).get("name") if isinstance(t.get("album"), dict) else None,
         "duration": _seconds(t.get("duration_seconds") or t.get("length") or t.get("duration")),
         "thumbnail": best["url"] if best else f"https://i.ytimg.com/vi/{t['videoId']}/hqdefault.jpg",
     }

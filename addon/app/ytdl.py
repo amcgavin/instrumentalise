@@ -30,10 +30,12 @@ def resolve(url: str) -> tuple[str, list[dict]]:
     return info.get("title") or "Untitled", tracks
 
 
-def download(track_id: str) -> Path:
-    """Download best audio as-is (Opus/AAC, a few MB); the GPU worker decodes it."""
+def download(track_id: str) -> tuple[Path, str | None]:
+    """Download best audio as-is (Opus/AAC, a few MB); the GPU worker decodes it.
+
+    Also returns the album from the video's metadata when YouTube Music has one."""
     opts = _opts(format="bestaudio/best", noplaylist=True,
                  outtmpl=str(config.TMP_DIR / "%(id)s.%(ext)s"))
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(f"https://music.youtube.com/watch?v={track_id}", download=True)
-        return Path(info["requested_downloads"][0]["filepath"])
+        return Path(info["requested_downloads"][0]["filepath"]), info.get("album")

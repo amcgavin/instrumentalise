@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS playlist_tracks (
 MIGRATIONS = {
     "playlists": {"kind": "TEXT NOT NULL DEFAULT 'playlist'", "seed": "TEXT",
                   "position": "INTEGER NOT NULL DEFAULT 0", "touched": "REAL"},
+    "tracks": {"album": "TEXT"},
 }
 
 
@@ -55,10 +56,11 @@ def init() -> None:
 def _upsert_track(c, t: dict) -> None:
     # keep status/audio if the track is already known from another playlist
     c.execute(
-        "INSERT INTO tracks (id, title, artist, duration, thumbnail, updated) VALUES (?,?,?,?,?,?) "
+        "INSERT INTO tracks (id, title, artist, album, duration, thumbnail, updated) VALUES (?,?,?,?,?,?,?) "
         "ON CONFLICT(id) DO UPDATE SET title=excluded.title, artist=excluded.artist, "
+        "album=COALESCE(excluded.album, tracks.album), "
         "duration=excluded.duration, thumbnail=excluded.thumbnail",
-        (t["id"], t["title"], t["artist"], t["duration"], t["thumbnail"], time.time()),
+        (t["id"], t["title"], t["artist"], t.get("album"), t["duration"], t["thumbnail"], time.time()),
     )
 
 
@@ -173,6 +175,13 @@ def set_status(track_id: str, status: str, error: str | None = None) -> None:
     with connect() as c:
         c.execute("UPDATE tracks SET status=?, error=?, updated=? WHERE id=?",
                   (status, error, time.time(), track_id))
+
+
+def set_album_if_missing(track_id: str, album: str | None) -> None:
+    if album:
+        with connect() as c:
+            c.execute("UPDATE tracks SET album=? WHERE id=? AND (album IS NULL OR album='')",
+                      (album, track_id))
 
 
 def claim(track_id: str) -> bool:

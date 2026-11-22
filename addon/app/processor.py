@@ -46,7 +46,8 @@ class Processor:
             if not db.claim(track_id):  # cancelled (skipped past) while waiting in line
                 return
             with self._download_lock:
-                raw = ytdl.download(track_id)
+                raw, album = ytdl.download(track_id)
+            db.set_album_if_missing(track_id, album)
             db.set_status(track_id, "separating")
             result = _separate_remote(raw.read_bytes())
             tmp = out.with_suffix(".part")
