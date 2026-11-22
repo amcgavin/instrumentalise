@@ -53,8 +53,11 @@ class Separator:
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
-            src = pathlib.Path(tmp) / "in.audio"
-            src.write_bytes(audio)
+            raw = pathlib.Path(tmp) / "in.audio"
+            raw.write_bytes(audio)
+            # Accept whatever yt-dlp produced (opus/webm/m4a...): normalise to FLAC
+            src = pathlib.Path(tmp) / "in.flac"
+            subprocess.run(["ffmpeg", "-v", "error", "-i", str(raw), str(src)], check=True)
             self.sep.output_dir = tmp
             self.sep.model_instance.output_dir = tmp
             self.sep.separate(str(src), custom_output_names={"Instrumental": "inst"})
