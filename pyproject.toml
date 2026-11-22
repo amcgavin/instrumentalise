@@ -37,6 +37,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
+server = [
+    "fastapi>=0.165.0",
+    "uvicorn[standard]>=0.54.0",
+]
 worker = [
     "modal>=1.6.4",
 ]
