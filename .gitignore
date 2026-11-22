@@ -9,3 +9,4 @@ cache/
 .claude/
 data-dev/
 data-dev-server.log
+.idea/
