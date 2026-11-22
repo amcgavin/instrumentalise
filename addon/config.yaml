@@ -1,0 +1,25 @@
+name: Instrumentalise
+version: "0.1.0"
+slug: instrumentalise
+description: Play YouTube Music playlists with the vocals removed (separation runs on a Modal GPU)
+url: https://github.com/amcgavin/instrumentalise
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: false
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:microphone-off
+panel_title: Instrumentalise
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: Web UI for direct access (e.g. over WireGuard)
+options:
+  modal_token_id: ""
+  modal_token_secret: ""
+schema:
+  modal_token_id: str
+  modal_token_secret: password
