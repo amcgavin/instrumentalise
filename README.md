@@ -22,8 +22,14 @@ phone ──► HA add-on (FastAPI, yt-dlp on home IP, library cache)
    (create a token at modal.com → Settings → API Tokens), and start it.
 4. Open from the sidebar, or directly at `http://<ha-host>:8099` (e.g. over WireGuard).
 
+## Storage
+
+Finished instrumentals are cached by YouTube video ID in `/media/instrumentalise/<id>.m4a`
+(about 5 MB each, no size cap). They live in `/media`, not `/data`, so they stay out of HA backups.
+The library database and temporary downloads are in `/data`.
+
 ## Develop locally
 
 ```
-DATA_DIR=./data-dev uv run --project .. uvicorn app.main:app --port 8099   # from addon/
+DATA_DIR=./data-dev MEDIA_DIR=./data-dev/media uv run --project .. uvicorn app.main:app --port 8099   # from addon/
 ```
