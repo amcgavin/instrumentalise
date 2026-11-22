@@ -1,0 +1,28 @@
+[project]
+name = "instrumentalise"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "audio-separator>=0.48.0",
+    "audioread>=3.1.0",
+    "numpy>=2.5.5",
+    "onnxruntime>=1.32.0",
+    "soundfile>=0.14.0",
+    "static-ffmpeg>=3.0",
+    "torch>=2.9",
+    "torchaudio>=2.9",
+    "yt-dlp>=2026.10.26",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+torchaudio = { index = "pytorch-cu126" }
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv]
+python-preference = "only-managed"
+override-dependencies = ["beartype>=0.22"]

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+# large / generated artifacts
+bench/out/
+bench/models/
+bench/test.*
+bench/bench.log
+cache/
+.claude/
