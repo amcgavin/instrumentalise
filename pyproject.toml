@@ -11,12 +11,14 @@ dependencies = [
     "static-ffmpeg>=3.0",
     "torch>=2.9",
     "torchaudio>=2.9",
+    "torchvision>=0.24",
     "yt-dlp>=2026.10.26",
 ]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu126" }
 torchaudio = { index = "pytorch-cu126" }
+torchvision = { index = "pytorch-cu126" }
 
 [[tool.uv.index]]
 name = "pytorch-cu126"
