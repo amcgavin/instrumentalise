@@ -1,2 +1,433 @@
-<!doctype html><meta charset="utf-8"><title>Instrumentalise</title>
-<p>UI coming soon. API docs: <a href="docs">docs</a></p>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0e0f13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Instrumentalise</title>
+<style>
+:root {
+  --bg: #0e0f13; --card: #171922; --card2: #1f2230; --text: #eef0f6; --muted: #8a90a2;
+  --accent: #ff5c93; --accent2: #7c6bff; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+  --r: 14px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 96px); }
+main { max-width: 520px; margin: 0 auto; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+.hidden { display: none !important; }
+
+/* search */
+.searchbar { position: sticky; top: 0; z-index: 5; padding: 14px 0 10px; background: linear-gradient(var(--bg) 80%, transparent); }
+.searchbar input { width: 100%; padding: 13px 40px 13px 16px; font: inherit; color: var(--text);
+  background: var(--card); border: 1px solid #262a3a; border-radius: 999px; outline: none; }
+.searchbar input:focus { border-color: var(--accent2); }
+.searchbar .clear { position: absolute; right: 8px; top: 50%; translate: 0 -40%; width: 34px; height: 34px; color: var(--muted); font-size: 20px; }
+
+/* lists */
+.list { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 18px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 6px; font-weight: 600; }
+.row { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; text-align: left; width: 100%; }
+.row:active, .row.current { background: var(--card); }
+.row img, .row .ph { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--card2); flex: none; }
+.row .meta { min-width: 0; flex: 1; }
+.row .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .s { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--card2); color: var(--muted); flex: none; white-space: nowrap; }
+.chip.ready { color: var(--ok); } .chip.busy { color: var(--warn); } .chip.failed { color: var(--bad); }
+.row .x { color: var(--muted); width: 32px; height: 32px; font-size: 18px; flex: none; }
+.empty { color: var(--muted); text-align: center; padding: 40px 10px; }
+
+/* player */
+.player { text-align: center; margin-top: 6px; }
+.art { width: min(100%, 340px); aspect-ratio: 1; margin: 6px auto 16px; border-radius: 20px; overflow: hidden; background: var(--card);
+  box-shadow: 0 18px 50px rgba(124, 107, 255, .18); position: relative; }
+.art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.art .veil { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  background: rgba(14, 15, 19, .72); backdrop-filter: blur(6px); padding: 20px; }
+.spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--card2); border-top-color: var(--accent); animation: spin 1s linear infinite; }
+@keyframes spin { to { rotate: 360deg; } }
+.title { font-size: 20px; font-weight: 650; margin: 0 0 2px; }
+.artist { color: var(--muted); margin: 0 0 14px; }
+.station { color: var(--accent); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+.scrub { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.scrub input { flex: 1; accent-color: var(--accent); height: 28px; }
+.controls { display: flex; justify-content: center; align-items: center; gap: 26px; margin: 6px 0 4px; }
+.controls button { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; }
+.controls button svg { width: 28px; height: 28px; fill: currentColor; }
+.controls .play { width: 72px; height: 72px; background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+.controls .play svg { width: 34px; height: 34px; }
+.controls button:disabled { opacity: .35; }
+
+/* mini bar when searching */
+.mini { position: fixed; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 12px); max-width: 496px; margin: 0 auto;
+  display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; background: var(--card2); border-radius: 16px; z-index: 6;
+  box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.mini img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+.mini .meta { flex: 1; min-width: 0; }
+.mini .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+.mini .s { color: var(--muted); font-size: 12px; }
+.mini button { width: 44px; height: 44px; display: grid; place-items: center; }
+.mini svg { width: 26px; height: 26px; fill: currentColor; }
+
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 84px); translate: -50% 0; background: #2a2e40; padding: 10px 16px;
+  border-radius: 12px; font-size: 14px; z-index: 9; max-width: 90vw; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+</style>
+</head>
+<body>
+<main>
+  <div class="searchbar">
+    <input id="q" type="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false"
+           placeholder="Search a song to start a radio, or paste a playlist link">
+    <button class="clear hidden" id="clear" aria-label="Clear search">✕</button>
+  </div>
+
+  <section id="results" class="hidden"></section>
+
+  <section id="home">
+    <div id="player" class="player hidden">
+      <div class="station" id="station"></div>
+      <div class="art"><img id="art" alt=""><div class="veil hidden" id="veil"><div class="spin"></div><div id="veiltext"></div></div></div>
+      <h1 class="title" id="title"></h1>
+      <p class="artist" id="artist"></p>
+      <div class="scrub"><span id="cur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0"><span id="dur">0:00</span></div>
+      <div class="controls">
+        <button id="prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12 18 18V6z"/></svg></button>
+        <button id="toggle" class="play" aria-label="Play"><svg viewBox="0 0 24 24" id="ticon"></svg></button>
+        <button id="next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+      </div>
+      <h2 style="text-align:left">Up next</h2>
+      <div class="list" id="upnext" style="text-align:left"></div>
+    </div>
+    <h2 id="recent-h" class="hidden">Recent</h2>
+    <div class="list" id="recent"></div>
+    <div class="empty" id="welcome">Search for a song above.<br>It becomes a radio, with the vocals removed.</div>
+  </section>
+</main>
+
+<div class="mini hidden" id="mini">
+  <img id="mimg" alt=""><div class="meta"><div class="t" id="mtitle"></div><div class="s" id="msub"></div></div>
+  <button id="mtoggle" aria-label="Play/pause"><svg viewBox="0 0 24 24" id="mticon"></svg></button>
+</div>
+<div class="toast hidden" id="toast"></div>
+<audio id="audio" preload="auto" playsinline></audio>
+
+<script>
+"use strict";
+// Relative URLs so this works both behind HA ingress (/api/hassio_ingress/<token>/) and directly on :8099
+const BASE = location.pathname.endsWith("/") ? location.pathname : location.pathname + "/";
+const $ = (id) => document.getElementById(id);
+const audio = $("audio");
+const ICON = { play: '<path d="M8 5v14l11-7z"/>', pause: '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>' };
+const SILENCE = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+const POLL_BUSY_MS = 3000, HEARTBEAT_MS = 20000;
+const STAGE = { new: "Waiting", queued: "In line", downloading: "Downloading", separating: "Removing vocals", ready: "Ready", failed: "Failed" };
+
+let station = null;     // {id, title, kind, tracks[]}
+let index = 0;          // index of the current track in station.tracks
+let waitingSince = 0;   // when we started waiting for the current track to be prepared
+let lastBeat = 0;
+
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (s) => (isFinite(s) && s >= 0) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "0:00";
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
+};
+
+async function api(path, opts = {}) {
+  const res = await fetch(BASE + "api/" + path, {
+    headers: opts.body ? { "content-type": "application/json" } : undefined,
+    ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    let msg = res.statusText;
+    try { msg = (await res.json()).detail || msg; } catch { /* not json */ }
+    throw new Error(msg);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.remove("hidden");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add("hidden"), 4000);
+}
+
+// iOS/Chrome only allow audio.play() from a user gesture the first time; the radio start
+// involves network waits, so unlock the element synchronously inside the tap.
+function unlockAudio() {
+  if (audio.dataset.unlocked) return;
+  audio.src = SILENCE; audio.play().then(() => { audio.dataset.unlocked = "1"; }).catch(() => {});
+}
+
+const track = () => station?.tracks[index];
+const trackUrl = (t) => `${BASE}api/tracks/${t.id}/audio`;
+
+/* ---------- rendering ---------- */
+function setToggleIcons(playing) {
+  const svg = playing ? ICON.pause : ICON.play;
+  $("ticon").innerHTML = svg; $("mticon").innerHTML = svg;
+  $("toggle").setAttribute("aria-label", playing ? "Pause" : "Play");
+}
+
+function renderPlayer() {
+  const t = track();
+  $("player").classList.toggle("hidden", !t);
+  $("welcome").classList.toggle("hidden", !!station);
+  if (!t) return;
+  $("station").textContent = station.kind === "radio" ? "Radio" : "Playlist";
+  $("title").textContent = t.title;
+  $("artist").textContent = t.artist || "";
+  $("art").src = t.thumbnail || "";
+  $("prev").disabled = index === 0;
+  $("next").disabled = index >= station.tracks.length - 1;
+  $("mimg").src = t.thumbnail || ""; $("mtitle").textContent = t.title; $("msub").textContent = t.artist || "";
+  const waiting = t.status !== "ready";
+  $("veil").classList.toggle("hidden", !waiting);
+  if (waiting) {
+    const secs = waitingSince ? Math.round((Date.now() - waitingSince) / 1000) : 0;
+    $("veiltext").innerHTML = t.status === "failed"
+      ? `Couldn't prepare this one<br><button id="retry" class="chip failed">Retry</button>`
+      : `${esc(STAGE[t.status] || "Preparing")}…<br><small style="color:var(--muted)">${secs}s${index === 0 && secs < 60 ? " · the first song takes a minute or so" : ""}</small>`;
+    $("veil").querySelector(".spin").classList.toggle("hidden", t.status === "failed");
+    const r = $("retry"); if (r) r.onclick = () => retry(t);
+  }
+  renderUpNext();
+}
+
+function renderUpNext() {
+  const items = station.tracks.slice(index + 1, index + 16);
+  $("upnext").innerHTML = items.map((t, i) => {
+    const cls = t.status === "ready" ? "ready" : t.status === "failed" ? "failed" : ["queued", "downloading", "separating"].includes(t.status) ? "busy" : "";
+    return `<button class="row" data-i="${index + 1 + i}"><img src="${esc(t.thumbnail)}" alt="" loading="lazy">
+      <div class="meta"><div class="t">${esc(t.title)}</div><div class="s">${esc(t.artist)}</div></div>
+      <span class="chip ${cls}">${esc(STAGE[t.status] || t.status)}</span></button>`;
+  }).join("") || '<div class="empty">That\'s the end of the queue.</div>';
+}
+
+function renderRecent(list) {
+  $("recent-h").classList.toggle("hidden", !list.length);
+  $("recent").innerHTML = list.map((p) => `<div class="row" data-open="${p.id}" role="button" tabindex="0">
+      ${p.thumbnail ? `<img src="${esc(p.thumbnail)}" alt="" loading="lazy">` : '<div class="ph"></div>'}
+      <div class="meta"><div class="t">${esc(p.title)}</div><div class="s">${p.kind === "radio" ? "Radio" : "Playlist"} · ${p.total} songs</div></div>
+      <button class="x" data-del="${p.id}" aria-label="Delete">✕</button></div>`).join("");
+}
+
+function renderMini() {
+  const searching = !$("results").classList.contains("hidden");
+  $("mini").classList.toggle("hidden", !(searching && track()));
+}
+
+/* ---------- playback ---------- */
+function loadCurrent(autoplay) {
+  const t = track();
+  if (!t) return;
+  if (t.status === "ready") {
+    waitingSince = 0;
+    audio.src = trackUrl(t);
+    if (autoplay) audio.play().catch((e) => toast("Tap play to start (" + e.name + ")"));
+    updateMediaSession();
+  } else {
+    if (!waitingSince) waitingSince = Date.now();
+    audio.removeAttribute("src"); audio.load();
+    setToggleIcons(false);
+    if (t.status === "failed") skipFailed(autoplay);
+  }
+  renderPlayer();
+}
+
+function skipFailed(autoplay) {
+  if (autoplay && index < station.tracks.length - 1) { toast("Skipped a song that couldn't be prepared"); go(index + 1, true); }
+}
+
+async function go(i, autoplay = true) {
+  if (!station || i < 0 || i >= station.tracks.length) return;
+  index = i; waitingSince = 0; store.set("idx", String(i));
+  loadCurrent(autoplay);
+  heartbeat(true);
+}
+
+const next = () => go(index + 1);
+const prev = () => (audio.currentTime > 3 ? (audio.currentTime = 0) : go(index - 1));
+function toggle() {
+  unlockAudio();
+  if (!audio.src || audio.src.startsWith("data:")) { loadCurrent(true); return; }
+  audio.paused ? audio.play() : audio.pause();
+}
+
+function updateMediaSession() {
+  const t = track();
+  if (!("mediaSession" in navigator) || !t) return;
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: t.title, artist: t.artist || "", album: station.title,
+    artwork: t.thumbnail ? [{ src: t.thumbnail, sizes: "512x512" }] : [],
+  });
+  const set = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch { /* unsupported */ } };
+  set("play", () => audio.play()); set("pause", () => audio.pause());
+  set("nexttrack", next); set("previoustrack", prev);
+  set("seekto", (d) => { audio.currentTime = d.seekTime; });
+  set("seekbackward", () => { audio.currentTime = Math.max(0, audio.currentTime - 10); });
+  set("seekforward", () => { audio.currentTime += 10; });
+}
+
+function updatePositionState() {
+  if ("mediaSession" in navigator && isFinite(audio.duration) && audio.duration > 0) {
+    try { navigator.mediaSession.setPositionState({ duration: audio.duration, position: audio.currentTime, playbackRate: 1 }); } catch { /* ignore */ }
+  }
+}
+
+audio.addEventListener("play", () => setToggleIcons(true));
+audio.addEventListener("pause", () => setToggleIcons(false));
+audio.addEventListener("ended", () => {
+  if (audio.src.startsWith("data:")) return;   // the silent unlock clip ending is not a song ending
+  if (track()?.status === "ready") next();
+});
+audio.addEventListener("error", () => { if (audio.src && !audio.src.startsWith("data:")) toast("Playback error on this song"); });
+audio.addEventListener("loadedmetadata", () => { $("dur").textContent = fmt(audio.duration); updatePositionState(); });
+audio.addEventListener("timeupdate", () => {
+  if (audio.src.startsWith("data:")) return;
+  $("cur").textContent = fmt(audio.currentTime);
+  if (!seeking && audio.duration) $("seek").value = String(Math.round((audio.currentTime / audio.duration) * 1000));
+});
+let seeking = false;
+$("seek").addEventListener("input", () => { seeking = true; if (audio.duration) $("cur").textContent = fmt($("seek").value / 1000 * audio.duration); });
+$("seek").addEventListener("change", () => { if (audio.duration) audio.currentTime = $("seek").value / 1000 * audio.duration; seeking = false; updatePositionState(); });
+
+/* ---------- station sync ---------- */
+function mergeStation(fresh) {
+  const cur = track()?.id;
+  station = fresh;
+  if (cur) { const i = fresh.tracks.findIndex((t) => t.id === cur); if (i >= 0) index = i; }
+}
+
+async function heartbeat(force = false) {
+  if (!station) return;
+  if (!force && Date.now() - lastBeat < HEARTBEAT_MS) return;
+  lastBeat = Date.now();
+  try { await api(`playlists/${station.id}/position`, { method: "POST", body: { index } }); } catch { /* retry next tick */ }
+}
+
+async function tick() {
+  if (!station || document.hidden && audio.paused) return;
+  try {
+    const wasWaiting = track() && track().status !== "ready";
+    mergeStation(await api(`playlists/${station.id}`));
+    if (wasWaiting && track().status === "ready") loadCurrent(true);   // the song we were waiting on is ready
+    else if (track()?.status === "failed") skipFailed(!audio.paused || wasWaiting);
+    renderPlayer();
+    heartbeat();
+  } catch { /* network blip: try again next tick */ }
+}
+setInterval(tick, POLL_BUSY_MS);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+async function retry(t) {
+  try { await api(`tracks/${t.id}/retry`, { method: "POST" }); waitingSince = Date.now(); tick(); } catch (e) { toast(e.message); }
+}
+
+/* ---------- starting things ---------- */
+const WELCOME = $("welcome").innerHTML;
+function showBusy(msg) { $("welcome").textContent = msg; $("welcome").classList.remove("hidden"); }
+
+async function startStation(request, resume = false) {
+  unlockAudio();
+  clearSearch();
+  $("player").classList.add("hidden");
+  showBusy("Starting…");
+  try {
+    station = await request();
+    index = resume ? Math.min(station.position, station.tracks.length - 1) : 0;
+    waitingSince = Date.now(); store.set("station", String(station.id));
+    await go(index, true);
+    loadRecent();
+  } catch (e) { toast(e.message); station = null; $("welcome").innerHTML = WELCOME; renderPlayer(); }
+}
+
+const startRadio = (videoId) => startStation(() => api("radio", { method: "POST", body: { video_id: videoId } }));
+const importPlaylist = (url) => startStation(() => api("playlists", { method: "POST", body: { url } }));
+const openStation = (id) => startStation(() => api(`playlists/${id}`), true);
+
+async function loadRecent() {
+  try { renderRecent(await api("playlists")); } catch { /* offline */ }
+}
+
+/* ---------- search ---------- */
+let searchTimer, searchSeq = 0;
+function clearSearch() { $("q").value = ""; showResults(null); }
+function showResults(html) {
+  const r = $("results");
+  r.classList.toggle("hidden", html === null);
+  $("home").classList.toggle("hidden", html !== null);
+  $("clear").classList.toggle("hidden", !$("q").value);
+  if (html !== null) r.innerHTML = html;
+  renderMini();
+}
+
+async function runSearch(q) {
+  const seq = ++searchSeq;
+  if (/^https?:\/\//i.test(q)) {
+    showResults(`<div class="list"><button class="row" data-import="1"><div class="ph"></div><div class="meta"><div class="t">Import this playlist</div><div class="s">${esc(q)}</div></div></button></div>`);
+    return;
+  }
+  showResults('<div class="empty">Searching…</div>');
+  try {
+    const items = await api("search?q=" + encodeURIComponent(q));
+    if (seq !== searchSeq) return;
+    showResults(items.length ? `<h2>Songs · tap to start a radio</h2><div class="list">${items.map((t) =>
+      `<button class="row" data-radio="${esc(t.id)}"><img src="${esc(t.thumbnail)}" alt="" loading="lazy">
+       <div class="meta"><div class="t">${esc(t.title)}</div><div class="s">${esc(t.artist)}${t.duration ? " · " + fmt(t.duration) : ""}</div></div></button>`).join("")}</div>`
+      : '<div class="empty">No songs found.</div>');
+  } catch (e) { if (seq === searchSeq) showResults(`<div class="empty">${esc(e.message)}</div>`); }
+}
+
+$("q").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  const q = $("q").value.trim();
+  if (!q) { showResults(null); return; }
+  $("clear").classList.remove("hidden");
+  searchTimer = setTimeout(() => runSearch(q), 350);
+});
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") { clearTimeout(searchTimer); const q = $("q").value.trim(); if (q) runSearch(q); $("q").blur(); } });
+$("clear").addEventListener("click", clearSearch);
+
+/* ---------- wiring ---------- */
+$("results").addEventListener("click", (e) => {
+  const r = e.target.closest("[data-radio]"), imp = e.target.closest("[data-import]");
+  if (r) startRadio(r.dataset.radio);
+  else if (imp) importPlaylist($("q").value.trim());
+});
+$("upnext").addEventListener("click", (e) => { const r = e.target.closest("[data-i]"); if (r) { unlockAudio(); go(+r.dataset.i, true); } });
+$("recent").addEventListener("click", async (e) => {
+  const del = e.target.closest("[data-del]");
+  if (del) {
+    e.stopPropagation();
+    if (!confirm("Delete this station from the list?")) return;
+    try { await api(`playlists/${del.dataset.del}`, { method: "DELETE" }); if (station && String(station.id) === del.dataset.del) { station = null; audio.pause(); renderPlayer(); } loadRecent(); } catch (err) { toast(err.message); }
+    return;
+  }
+  const open = e.target.closest("[data-open]"); if (open) openStation(open.dataset.open);
+});
+$("toggle").addEventListener("click", toggle); $("mtoggle").addEventListener("click", toggle);
+$("next").addEventListener("click", () => { unlockAudio(); next(); });
+$("prev").addEventListener("click", () => { unlockAudio(); prev(); });
+
+/* ---------- boot: restore the last station (paused) ---------- */
+(async function boot() {
+  await loadRecent();
+  const id = store.get("station");
+  if (!id) return;
+  try {
+    station = await api(`playlists/${id}`);
+    index = Math.min(+(store.get("idx") ?? station.position ?? 0), station.tracks.length - 1);
+    const t = track(); if (t && t.status === "ready") audio.src = trackUrl(t);
+    renderPlayer(); setToggleIcons(false); updateMediaSession(); heartbeat(true);
+  } catch { station = null; }
+})();
+</script>
+</body>
+</html>
