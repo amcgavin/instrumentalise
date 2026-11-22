@@ -8,3 +8,4 @@ bench/test.*
 bench/bench.log
 cache/
 .claude/
+data-dev/
